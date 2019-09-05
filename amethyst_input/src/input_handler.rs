@@ -554,19 +554,23 @@ where
                     }
                 })
                 .unwrap_or(0.0),
-            Axis::Mouse { axis, over_extendable, radius } => {
+            Axis::Mouse { axis, over_extendable, radius_x, radius_y } => {
                 let current_pos = self.mouse_position.unwrap_or((0., 0.));
                 let last_pos = self.mouse_last_position.unwrap_or(current_pos);
                 let delta = match axis {
-                    MouseAxis::X => current_pos.0 - last_pos.0,
-                    MouseAxis::Y => current_pos.1 - last_pos.1,
+                    // These calculations have to be inverses in order to point into the right direction of movement
+                    MouseAxis::X => last_pos.0 - current_pos.0,
+                    MouseAxis::Y => last_pos.1 - current_pos.1,
                 };
 
                 if over_extendable {
                     return delta;
                 }
 
-                let rel_delta = delta / radius;
+                let rel_delta = match axis {
+                    MouseAxis::X => delta / radius_x,
+                    MouseAxis::Y => delta / radius_y,
+                };
 
                 if rel_delta > 1. { 1. }
                 else if rel_delta < -1. { -1. }
